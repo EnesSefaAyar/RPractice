@@ -497,6 +497,10 @@ write_csv(rna_wide, file = "data_output/rna_wide.csv")
 
 # Chapter 6 Data Visualization
 ```{r}
+library("tidyverse")
+rna <- read.csv("data/rnaseq.csv")
+
+
 
 
 ```
