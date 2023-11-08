@@ -1,0 +1,503 @@
+Enes Sefa Ayar
+11/2023
+
+
+# Community Help
+```{r}
+dput(head(iris)) # Use an example dataset for your questions (social)
+saveRDS(iris, file="~/RTutorial/data/iris.rds") # Save your small data (personal)
+some_data <- readRDS(file="~/RTutorial/data/iris.rds") # Load small data (personal)
+sessionInfo() # Printout session info for compatibility, include in documents.
+```
+# Basics
+
+```{r}
+# Ctr+Shift+C, multiple line comment
+# Packages
+
+library("ggplot2") # import
+# install.packages("dplyr"), like pip install
+library(devtools)
+devtools::install_github() # using functions from Github
+
+# Functions
+?round # Documentation of function round
+args(round) # Print the arguments in console
+
+# Vectors: Only one type of variable possible, auto change if otherwise
+weight_g <- c(50, 60, 65, 82)
+length(weight_g) # length of the vector
+class(weight_g) # Type of elements in the vector
+str(weight_g) # Structure and elements
+weight_g <- c(weight_g, 90) # add to the end of the vector
+weight_g <- c(30, weight_g) # add to the beginning of the vector
+typeof(weight_g)
+mixed <- c(50, "Enes", TRUE) # Makes all character
+typeof(mixed)
+num_logical <- c(1, 2, 3, FALSE) # 1 for TRUE, 0 for FALSE, still numeric vector
+class(num_logical)
+
+# Subsetting, indexes start from 1
+molecules <- c("dna", "rna", "peptide", "protein")
+molecules[2]
+molecules[c(3, 2)]
+more_molecules <- molecules[c(1, 2, 3, 2, 1, 4)] # More than one selection
+more_molecules
+molecules[-1] ## all but the first one
+molecules[-c(1, 3)] ## all but 1st/3rd ones
+fruits <- c("apple", "grape", "banana")
+sort(fruits) # alphabetic sort
+
+# Conditional subsetting(==, >, >=, <, <=, |, &)
+weight_g <- c(21, 34, 39, 54, 55)
+weight_g <- weight_g[c(TRUE, FALSE, TRUE, TRUE, TRUE)]
+weight_g <- weight_g[weight_g > 50]
+weight_g[weight_g < 30 | weight_g > 50]
+
+molecules <- c("dan", "rna", "protein", "peptide")
+molecules[molecules == "rna" | molecules == "dna"] # returns both rna and dna
+molecules[molecules %in% c("rna", "dna", "metabolite", "peptide", "glycerol")]
+
+# Acces thorugh names instead of indexes, like a parallel vector keeping names
+x <- c(1, 5, 3, 5, 10)
+names(x) ## no names
+names(x) <- c("A", "B", "C", "D", "E")
+names(x) ## now we have names
+x[c(1, 3)]
+x[c("A", "C")]
+
+# Missing Data, NA
+heights <- c(2, 4, 4, NA, 6)
+mean(heights)
+mean(heights, na.rm = TRUE)
+## Extract those elements which are not missing values. Note: ! not operator
+heights[!is.na(heights)]
+na.omit(heights)
+heights[complete.cases(heights)]
+
+# Generating Vectors (default values)
+numeric(10)
+character(10)
+logical(10)
+
+rep(-1, 5)
+rep(NA, 5)
+rep(c(1, 2, 3), 5)
+sort(rep(c(1, 2, 3), 5))
+
+# Generating Sequences
+seq(from = 1, to = 20, by = 2)
+seq(1, 5, 1)
+seq(1, 5) # default step is 1
+1:5
+
+# To generate 3 numbers between 1 to 20:
+seq(from = 1, to = 20, length.out = 3)
+
+# Random samples and permutations
+sample(1:10) # 1 to 10 with random order
+sample(letters, 5) # sample 5 from a vector
+sample(1:5, 10, replace = TRUE) # multiple random selection
+
+set.seed(4)
+# Normal distribution of values
+rnorm(20, 0, 1) # size, mean, std
+
+```
+
+
+# Chapter 4 (Data loading, structures and exporting)
+```{r}
+# Load data, create a data frame and explore
+
+if (!file.exists("data/rnaseq.csv"))
+download.file(url = "https://raw.githubusercontent.com/Bioconductor/bioconductor-teaching/master/data/GSE96870/rnaseq.csv",
+              destfile = "data/rnaseq.csv")
+
+rna <- read.csv("data/rnaseq.csv") # read.csv2() for ; instead of ,
+rna                                # read.delim() for in tab separated
+head(rna)
+View(rna)
+# read.table(), More generic version
+rna <- read.table(file = "data/rnaseq.csv",
+                  sep = ",", quote = "\"",
+                  header = TRUE)
+str(rna)
+
+# Inspecting data frame (not have to be, generic functions)
+dim(rna) # rows x columns
+nrow(rna)
+ncol(rna)
+
+head(rna)
+tail(rna)
+
+names(rna) # return column names
+rownames(rna) # return row names (usually like index)
+
+str(rna)
+summary(rna) # - summary statistics for each column
+
+# Indexing and subsetting data frames [row, column]
+
+# first element in the 6th column (as a vector)
+rna[1, 6]
+# first column of the data frame (as a vector)
+rna[, 1]
+# first column of the data frame (as a data.frame)
+rna[1]
+# first three elements in the 7th column (as a vector)
+rna[1:3, 7]
+# the 3rd row of the data frame (as a data.frame)
+rna[3, ]
+
+rna[, -1]          ## The whole data frame, except the first column
+rna[-c(7:32428), ] ## Equivalent to head(rna)
+
+# Subset by column name
+rna["gene"]       # Result is a data.frame
+rna[, "gene"]     # Result is a vector
+rna[["gene"]]     # Result is a vector
+rna$gene          # Result is a vector
+
+# table that have a human homologous, remove the rows with na
+is_missing_hsapiens_homolog <- is.na(rna$hsapiens_homolog_associated_gene_name)
+is_missing_hsapiens_homolog
+rna_hsapiens_homolog <- rna[!is_missing_hsapiens_homolog,]
+
+(dim(rna) - dim(rna_hsapiens_homolog))[1]
+
+rna_200 <-rna[200,]
+nrow(rna)
+rna[32428,]
+tail(rna)
+rna_last <- rna[nrow(rna),]
+rna_last
+
+rna_middle <- rna[nrow(rna)/2,]
+rna_middle
+
+rna[-7:-nrow(rna),]
+
+# Factors, categorical data structure
+
+sex <- factor(c("male", "female", "female", "male", "female"))
+sex
+levels(sex)
+nlevels(sex)
+
+nlevels(factor(rna$gene)) # Number of genes
+
+sex <- factor(sex, levels = c("male", "female")) # order the levels
+levels(sex)
+
+as.character(sex) # convert factor to character vector
+as.numeric(sex) # convert factor to numeric vector
+
+plot(sex) # Can directly plot the factor
+
+levels(sex) <- c("M", "F")
+plot(sex)
+
+# Creating data frame by hand
+animal_data <- data.frame(
+       animal = c("dog", "cat", "sea cucumber", "sea urchin"),
+       feel = c("furry", "furry", "squishy", "spiny"),
+       weight = c(45, 8, 1.1, 0.8))
+
+animal_data
+
+country_climate <- data.frame(
+       country = c("Canada", "Panama", "South Africa", "Australia"),
+       climate = c("cold", "hot", "temperate", "hot/temperate"),
+       temperature = c(10, 30, 18, "15"),
+       northern_hemisphere = c(TRUE, TRUE, FALSE, "FALSE"),
+       has_kangaroo = c(FALSE, FALSE, FALSE, 1)
+       )
+str(country_climate)
+
+# Matrices, the major difference is that all cells in a matrix must be of 
+# the same type: numeric, character, logical, … 
+
+m <- matrix(1:9, ncol = 3, nrow = 3)
+m
+m <- matrix(1:9, ncol = 3, nrow = 3, byrow = TRUE)
+m
+
+class(installed.packages())
+head(installed.packages())
+nrow(installed.packages())
+rownames(installed.packages())
+colnames(installed.packages())
+
+
+m <- matrix(rnorm(3000, 0, 1), ncol = 3, nrow = 1000)
+m
+
+# vector: one dimension (they have a length), single type of data.
+# matrix: two dimensions, single type of data.
+# data.frame: two dimensions, one type per column.
+# list: one dimension, every item can be of a different data type.
+
+# Lists
+l <- list(1:10, ## numeric
+          letters, ## character
+          installed.packages(), ## a matrix
+          cars, ## a data.frame
+          list(1, 2, 3)) ## a list
+length(l)
+str(l)
+l[[1]] ## first element
+l[1]   ## a list of length 1
+l[1:2] ## a list of length 2
+names(l) <- c("numbers", "alphabet", "installed_packages", "cars", "random")
+names(l)
+
+l[-3]
+l[["cars"]] # or l[[4]]
+
+write.csv(rna, file = "data_output/my_rnaseq.csv") # better to share
+
+save(rna, file = "data_output/rnaseq.rda") # R data type, like .json
+rm(rna) # clean data from environment
+load("data_output/rnaseq.rda") # re-load with function
+
+saveRDS(rna, file = "data_output/rnaseq.rds")
+rm(rna)
+rna <- readRDS("data_output/rnaseq.rds")
+
+```
+
+# Chapter 5 dplyr and tidyr (needs to be reviewed)
+```{r}
+## load the tidyverse packages, incl. dplyr
+library("tidyverse")
+
+rna <- read_csv("data/rnaseq.csv") # tidyverse read function do not confuse with read.cvs
+
+## view the data
+rna
+
+# select(): subset columns
+# filter(): subset rows on conditions
+# mutate(): create new columns by using information from other columns
+# group_by() and summarize(): create summary statistics on grouped data
+# arrange(): sort results
+# count(): count discrete values
+
+select(rna, gene, sample, tissue, expression) # (data set, list of col names ...)
+select(rna, -tissue, -organism) # exclude some cols
+
+filter(rna, sex == "Male")
+filter(rna, sex == "Male" & infection == "NonInfected") # multiple conditioning
+
+# Genes doesn't have human homologous
+rna_NA <- filter(rna, is.na(hsapiens_homolog_associated_gene_name))
+select(rna_NA, gene, hsapiens_homolog_associated_gene_name)
+
+# Genes having human homologous
+rna_no_NA <- filter(rna, !is.na(hsapiens_homolog_associated_gene_name))
+select(rna_no_NA, gene, hsapiens_homolog_associated_gene_name)
+
+# Nested functions (filter and select)
+rna3 <- select(filter(rna, sex == "Male"), gene, sample, tissue, expression)
+rna3
+
+# Pipes %>%, attention: data set is not in the arguments in pipes
+rna %>% 
+  filter(sex == "Male") %>% 
+  select(gene, sample, tissue, expression)
+colnames(rna)
+
+
+rna %>% 
+  filter(expression > 50000 & sex == "Female" & time == 0) %>% 
+  select(gene, sample, time, expression, age)
+
+rna %>%  
+  mutate(time_hrs = time * 24) %>% 
+  select(time, time_hrs) 
+
+rna %>%  
+  mutate(time_hrs = time * 24, 
+         time_mn = time_hrs * 60) %>% 
+  select(time, time_hrs, time_mn) 
+
+
+rna_new <- rna %>%
+  filter(chromosome_name != "X" & chromosome_name != "Y" & !is.na(phenotype_description) ) %>% 
+  mutate(log_exp = log(expression)) %>% 
+  select(gene, chromosome_name, phenotype_description, sample, expression, log_exp)
+
+rna_new
+
+rna %>%
+  group_by(sample)
+
+rna %>%
+  group_by(sample) %>%
+  summarize(mean_expression = mean(expression))
+
+# group_by multiple columns
+rna %>%
+  group_by(gene, infection, time) %>%
+  summarize(mean_expression = mean(expression))
+
+# multiple summary
+rna %>%
+  group_by(gene, infection, time) %>%
+  summarize(mean_expression = mean(expression),
+            median_expression = median(expression)) 
+
+rna %>%
+  filter(gene == "Dok3") %>% 
+  group_by(time) %>%
+  summarize(mean_expression = mean(expression))
+
+rna %>%
+  count(infection)
+
+rna %>%
+  count(infection, time)
+
+# count is actually the combination of two function, group_by and summarize
+rna %>%
+  group_by(infection, time) %>% 
+  summarize(n = n())
+
+# arrange(), sorts by
+rna %>%
+  count(infection, time) %>%
+  arrange(time)
+
+rna %>%
+  count(infection, time) %>%
+  arrange(n)
+
+rna %>%
+  count(infection, time) %>%
+  arrange(desc(n))
+
+rna %>%
+  count(sample)
+
+rna %>%
+  group_by(sample) %>% 
+  summarize(seq_depth  = sum(expression)) %>% 
+  arrange(desc(seq_depth))
+
+rna %>% 
+  filter(sample == "GSM2545350") %>% 
+  count(gene_biotype)
+
+rna %>%
+  filter(phenotype_description == "abnormal DNA methylation") %>% 
+  group_by(gene, time) %>% 
+  summarize(mean_expression = mean(log(expression))) %>% 
+  arrange()
+
+# Re-shape data
+rna_exp <- rna %>% 
+  select(gene, sample, expression)
+rna_exp
+
+rna_wide <- rna_exp %>% 
+  pivot_wider(names_from = sample, # new col names
+              values_from = expression) # values in matrix
+rna_wide
+
+rna_long <- rna_wide %>%
+    pivot_longer(names_to = "sample", # collect col names under col sample
+                 values_to = "expression",
+                 -gene)
+rna_long
+
+rna_wide %>%
+    pivot_longer(names_to = "sample",
+                 values_to = "expression",
+                 cols = starts_with("GSM")) # apply only on certain cols
+
+rna_wide %>%
+    pivot_longer(names_to = "sample",
+                 values_to = "expression",
+                 GSM2545336:GSM2545380) # from/to
+
+
+exercise <- rna %>%
+  filter(chromosome_name == "X" | chromosome_name == "Y") %>%
+  group_by(sex, chromosome_name) %>% 
+  summarize(mean_exp = mean(expression))
+exercise
+
+exercise_wide <- exercise %>% 
+  pivot_wider(names_from = sex, # new col names
+              values_from = mean_exp) # values in matrix
+exercise_wide
+
+exercise_long <- exercise_wide %>% 
+  pivot_longer(names_to = "sex",
+               values_to = "mean_exp",
+               -chromosome_name)
+exercise_long
+
+mean_matrix <- rna %>% 
+  group_by(gene, time) %>% 
+  summarize(mean_exp = mean(expression)) %>%
+  pivot_wider(names_from = time, # new col names
+              values_from = mean_exp) #%>% # values in matrix
+  select(gene, "4") # !!! variable names starting with number !!!
+mean_matrix
+
+# Instead cols can be renamed
+rna %>% 
+  group_by(gene, time) %>% 
+  summarize(mean_exp = mean(expression)) %>% 
+  pivot_wider(names_from = time,
+              values_from = mean_exp) %>% 
+  rename("time0" = `0`, "time4" = `4`, "time8" = `8`) %>% 
+  select(gene, time4)
+
+mean_matrix %>% 
+  mutate(time_8_vs_0 = `8` / `0`, time_8_vs_4 = `8` / `4`) %>% 
+  pivot_longer(names_to = "comparisons",
+               values_to = "Fold_changes",
+               time_8_vs_0:time_8_vs_4) %>% 
+  filter(Fold_changes > 1.5 | Fold_changes < -1.5)
+
+write_csv(rna_wide, file = "data_output/rna_wide.csv")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Chapter 6 Data Visualization
+```{r}
+
+
+```
+
