@@ -500,8 +500,69 @@ write_csv(rna_wide, file = "data_output/rna_wide.csv")
 library("tidyverse")
 rna <- read.csv("data/rnaseq.csv")
 
+# ggplot(data = <DATA>, mapping = aes(<MAPPINGS>)) +  <GEOM_FUNCTION>()
+ggplot(data = rna)
+ggplot(data = rna, mapping = aes(x = expression))
+ggplot(data = rna, mapping = aes(x = expression)) +
+  geom_histogram()
+
+
+# Assign plot to a variable
+rna_plot <- ggplot(data = rna,
+                   mapping = aes(x = expression))
+
+# Draw the plot
+rna_plot + geom_histogram(bins=10)
+
+rna <- rna %>%
+  mutate(expression_log = log2(expression + 1))
+
+# Normalize data
+ggplot(rna, aes(x = expression_log)) + geom_histogram()
+
+# Scale axis
+ggplot(rna, aes(x = expression)) + geom_histogram() + scale_x_log10()
+
+# This is the correct syntax for adding layers
+rna_plot +
+  geom_histogram()
+
+# This will not add the new layer and will return an error message
+# rna_plot
+#   + geom_histogram()
+
+rna_fc <- rna %>% select(gene, time,
+                         gene_biotype, expression_log) %>%
+  group_by(gene, time, gene_biotype) %>%
+  summarize(mean_exp = mean(expression_log)) %>%
+  pivot_wider(names_from = time,
+              values_from = mean_exp) %>%
+  mutate(time_8_vs_0 = `8` - `0`, time_4_vs_0 = `4` - `0`)
+
+rna_fc
+ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0)) +
+  geom_point()
+
+ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0)) +
+  geom_point(alpha = 0.3, color = "blue")
+
+ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0)) +
+  geom_point(alpha = 0.3, aes(color = gene_biotype))
+
+ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0,
+                                color = gene_biotype)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(intercept = 0)
+
+ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0,
+                                color = gene_biotype)) +
+  geom_jitter(alpha = 0.3) + # add random noise in plotting to avoid jittering
+  geom_abline(intercept = 0)
+
+
 
 
 
 ```
+
 
