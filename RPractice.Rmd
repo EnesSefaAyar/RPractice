@@ -811,13 +811,13 @@ ggplot(faithful) +
                            ), color = "steelblue")
 
 ggplot(faithful) + 
-  geom_histogram(mapping = aes(x = eruptions)) # single position
+  geom_histogram(mapping = aes(x = eruptions, fill = waiting <60), 
+                 position = "dodge", 
+                 alpha = 0.3) # single position
 
 
 ggplot(faithful, aes(x = eruptions, y = waiting)) + 
-  geom_density_2d() + geom_point()
-
-
+  geom_density_2d() + geom_point(shape = "square", alpha = 0.3)
 
 
 ```
