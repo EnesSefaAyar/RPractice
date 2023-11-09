@@ -531,13 +531,296 @@ ggplot(data = rna_fc, mapping = aes(x = time_4_vs_0, y = time_8_vs_0,
   geom_jitter(alpha = 0.3) + # add random noise in plotting to avoid jittering
   geom_abline(intercept = 0)
 
+# Box plots
+ggplot(data = rna,
+         mapping = aes(y = expression_log, x = sample)) +
+  geom_jitter(alpha = 0.2, color = "tomato") +
+  geom_boxplot(alpha = 0) +
+  theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+
+ggplot(data = rna,
+         mapping = aes(y = expression_log, x = sample)) +
+  geom_jitter(alpha = 0.2, aes(color = time)) +
+  geom_boxplot(alpha = 0) +
+  theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+
+ggplot(data = rna,
+         mapping = aes(y = expression_log, x = sample)) +
+  geom_jitter(alpha = 0.2, aes(color = as.factor(time))) +
+  geom_boxplot(alpha = 0) +
+  theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+
+# Violin
+ggplot(data = rna,
+         mapping = aes(y = expression_log, x = sample)) +
+  geom_violin(aes(fill = as.factor(time))) +
+  theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+
+ggplot(data = rna,
+         mapping = aes(y = expression_log, x = sample)) +
+  geom_violin(aes(fill = sex)) +
+  theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+
+# 
+rna_fc <- rna_fc %>% arrange(desc(time_8_vs_0))
+
+genes_selected <- rna_fc$gene[1:12]
+
+sub_rna <- rna %>%
+    filter(gene %in% genes_selected)
+
+mean_exp_by_time <- sub_rna %>%
+  group_by(gene, time) %>%
+    summarize(mean_exp = mean(expression_log))
+
+mean_exp_by_time
+
+ggplot(data = mean_exp_by_time, mapping = aes(x = time, y = mean_exp)) +
+  geom_line()
+
+ggplot(data = mean_exp_by_time,
+       mapping = aes(x = time, y = mean_exp, group = gene)) +
+  geom_line()
+
+ggplot(data = mean_exp_by_time,
+       mapping = aes(x = time, y = mean_exp, color = gene)) +
+  geom_line()
+
+ggplot(data = mean_exp_by_time,
+       mapping = aes(x = time, y = mean_exp)) + geom_line() +
+  facet_wrap(~ gene)
+
+ggplot(data = mean_exp_by_time,
+       mapping = aes(x = time, y = mean_exp)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y")
+
+mean_exp_by_time_sex <- sub_rna %>%
+  group_by(gene, time, sex) %>%
+    summarize(mean_exp = mean(expression_log))
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y")
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+
+# challenge
+colnames(rna)
+mean_exp_by_time_chr <- rna %>%
+  group_by(chromosome_name, time) %>%
+    summarize(mean_exp = mean(expression_log))
+
+mean_exp_by_time_chr
+
+ggplot(data = mean_exp_by_time_chr,
+       mapping = aes(x = time, y = mean_exp)) +
+  geom_line() +
+  facet_wrap(~ chromosome_name, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+# One column, facet by rows
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = gene)) +
+  geom_line() +
+  facet_grid(sex ~ .)
+
+# One row, facet by column
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = gene)) +
+  geom_line() +
+  facet_grid(. ~ sex)
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(title = "Mean gene expression by duration of the infection",
+       x = "Duration of the infection (in days)",
+       y = "Mean gene expression")
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(title = "Mean gene expression by duration of the infection",
+       x = "Duration of the infection (in days)",
+       y = "Mean gene expression")  +
+  theme(text = element_text(size = 16))
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(title = "Mean gene expression by duration of the infection",
+       x = "Duration of the infection (in days)",
+       y = "Mean gene expression")  +
+  theme(text = element_text(size = 16),
+        axis.text.x = element_text(colour = "royalblue4", size = 12),
+        axis.text.y = element_text(colour = "royalblue4", size = 12),
+        panel.grid = element_line(colour="lightsteelblue1"),
+        legend.position = "top")
+
+# Saving themes
+blue_theme <- theme(axis.text.x = element_text(colour = "royalblue4",
+                                               size = 12),
+                    axis.text.y = element_text(colour = "royalblue4",
+                                               size = 12),
+                    text = element_text(size = 16),
+                    panel.grid = element_line(colour="lightsteelblue1"))
+
+ggplot(rna, aes(x = expression_log)) +
+  geom_histogram(bins = 20) +
+    blue_theme
+
+# change the thickness of the lines
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line(linewidth=1.5) +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_color_discrete(name = "Gender", labels = c("F", "M"))
+
+# using a different color palette
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_color_brewer(name = "Gender", labels = c("F", "M"), palette = "Dark2")
+
+# manually specifying the colors
+ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_color_manual(name = "Gender",  labels = c("F", "M"),
+                     values = c("royalblue", "deeppink"))
+
+# Composing Plots
+rna$chromosome_name <- factor(rna$chromosome_name,
+                               levels = c(1:19,"X","Y"))
+
+count_gene_chromosome <- rna %>% select(chromosome_name, gene) %>%
+  distinct() %>% ggplot() +
+  geom_bar(aes(x = chromosome_name), fill = "seagreen",
+           position = "dodge", stat = "count") +
+  labs(y = "log10(n genes)", x = "chromosome") +
+  scale_y_log10()
+
+count_gene_chromosome
+
+exp_boxplot_sex <- ggplot(rna, aes(y=expression_log, x = as.factor(time),
+                 color=sex)) +
+   geom_boxplot(alpha = 0) +
+  labs(y = "Mean gene exp",
+       x = "time") + theme(legend.position = "none")
+
+exp_boxplot_sex
+library("patchwork")
+count_gene_chromosome + exp_boxplot_sex
+count_gene_chromosome | exp_boxplot_sex
+count_gene_chromosome / exp_boxplot_sex
+
+count_gene_chromosome + exp_boxplot_sex + plot_layout(ncol = 1)
+
+count_gene_chromosome +
+ (count_gene_chromosome + exp_boxplot_sex) +
+ exp_boxplot_sex +
+ plot_layout(ncol = 1)
+
+count_gene_chromosome /
+ (count_gene_chromosome | exp_boxplot_sex) /
+ exp_boxplot_sex
+
+library("gridExtra")
+grid.arrange(count_gene_chromosome, exp_boxplot_sex, ncol = 2)
+
+# Exporting plots
+my_plot <- ggplot(data = mean_exp_by_time_sex,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y") +
+  labs(title = "Mean gene expression by duration of the infection",
+         x = "Duration of the infection (in days)",
+         y = "Mean gene expression") +
+  guides(color=guide_legend(title="Gender")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(colour = "royalblue4", size = 12),
+        axis.text.y = element_text(colour = "royalblue4", size = 12),
+        text = element_text(size = 16),
+        panel.grid = element_line(colour="lightsteelblue1"),
+        legend.position = "top")
+ggsave("fig_output/mean_exp_by_time_sex.png", my_plot, width = 15,
+       height = 10)
+
+# This also works for grid.arrange() plots
+combo_plot <- grid.arrange(count_gene_chromosome, exp_boxplot_sex,
+                           ncol = 2, widths = c(4, 6))
+ggsave("fig_output/combo_plot_chromosome_sex.png", combo_plot,
+       width = 10, dpi = 300)
+```
+
+
+
+
+# Youtube Workshop (ggplot2)
+```{r}
+data("faithful")
+ggplot(data = faithful, # Global data can be used by other layers
+       mapping = aes(x= eruptions, y = waiting)) + # global mapping
+  geom_point()
+
+ggplot() +
+  geom_point(mapping = aes(x= eruptions, y = waiting), # local mapping
+             data = faithful) # data can be used by only geom_point()
+
+ggplot(faithful) + # better to keep data global
+  geom_point(mapping = aes(x= eruptions, # asthetics local
+                           y = waiting,
+                           color = eruptions < 3))
+
+ggplot(faithful) + 
+  geom_point(mapping = aes(x= eruptions,
+                           y = waiting # if you put color parameter in aes, doesnt work
+                           ), color = "steelblue")
+
+ggplot(faithful) + 
+  geom_histogram(mapping = aes(x = eruptions)) # single position
+
+
+ggplot(faithful, aes(x = eruptions, y = waiting)) + 
+  geom_density_2d() + geom_point()
 
 
 
 
 ```
-
-
 
 
 
