@@ -124,7 +124,7 @@ rna <- read.table(file = "data/rnaseq.csv",
                   header = TRUE)
 str(rna)
 
-# Inspecting data frame (not have to be, generic functions)
+# Inspecting data frame (generic functions)
 dim(rna) # rows x columns
 nrow(rna)
 ncol(rna)
@@ -134,6 +134,7 @@ tail(rna)
 
 names(rna) # return column names
 rownames(rna) # return row names (usually like index)
+colnames(rna)
 
 str(rna)
 summary(rna) # - summary statistics for each column
@@ -234,10 +235,38 @@ colnames(installed.packages())
 m <- matrix(rnorm(3000, 0, 1), ncol = 3, nrow = 1000)
 m
 
+# Formatting Dates
+library("lubridate")
+
+my_date <- ymd("2015-01-01")
+str(my_date)
+my_date
+
+# sep indicates the character to use to separate each component
+my_date <- ymd(paste("2015", "1", "1", sep = "-")) # ymd -> year-month-day
+str(my_date)
+my_date
+
+x <- data.frame(year = c(1996, 1992, 1987, 1986, 2000, 1990, 2002, 1994, 1997, 1985),
+                month = c(2,  3,  3, 10,  1,  8,  3,  4,  5,  5),
+                day = c(24,  8,  1,  5,  8, 17, 13, 10, 11, 24),
+                value = c(4,  5,  1,  9,  3,  8, 10,  2,  6,  7))
+x
+
+paste(x$year, x$month, x$day, sep = "-")
+ymd(paste(x$year, x$month, x$day, sep = "-"))
+
+x$date <- ymd(paste(x$year, x$month, x$day, sep = "-"))
+str(x) # notice the new column, with 'date' as the class
+
+dmy(paste(x$day, x$month, x$year, sep = "-")) # In the order day-month-year (dmy)
+
+# Summary of objects
 # vector: one dimension (they have a length), single type of data.
 # matrix: two dimensions, single type of data.
 # data.frame: two dimensions, one type per column.
 # list: one dimension, every item can be of a different data type.
+
 
 # Lists
 l <- list(1:10, ## numeric
@@ -789,38 +818,6 @@ ggsave("fig_output/combo_plot_chromosome_sex.png", combo_plot,
 
 
 
-# Youtube Workshop (ggplot2)
-```{r}
-data("faithful")
-ggplot(data = faithful, # Global data can be used by other layers
-       mapping = aes(x= eruptions, y = waiting)) + # global mapping
-  geom_point()
-
-ggplot() +
-  geom_point(mapping = aes(x= eruptions, y = waiting), # local mapping
-             data = faithful) # data can be used by only geom_point()
-
-ggplot(faithful) + # better to keep data global
-  geom_point(mapping = aes(x= eruptions, # asthetics local
-                           y = waiting,
-                           color = eruptions < 3))
-
-ggplot(faithful) + 
-  geom_point(mapping = aes(x= eruptions,
-                           y = waiting # if you put color parameter in aes, doesnt work
-                           ), color = "steelblue")
-
-ggplot(faithful) + 
-  geom_histogram(mapping = aes(x = eruptions, fill = waiting <60), 
-                 position = "dodge", 
-                 alpha = 0.3) # single position
-
-
-ggplot(faithful, aes(x = eruptions, y = waiting)) + 
-  geom_density_2d() + geom_point(shape = "square", alpha = 0.3)
-
-
-```
 
 
 
