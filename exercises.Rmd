@@ -111,12 +111,13 @@ Modify the code below to make the points larger squares and slightly transparent
 See `?geom_point` for more information on the point layer.
 
 ```{r}
+?geom_point
 ggplot(faithful) + 
-  geom_point(aes(x = eruptions, y = waiting))
+  geom_point(aes(x = eruptions, y = waiting), alpha = 0.3, size = 3, shape = "square")
 ```
 
 Hint 1: transparency is controlled with `alpha`, and shape with `shape`
-Hint 2: rememberthe difference between mapping and setting aesthetics
+Hint 2: remember the difference between mapping and setting aesthetics
 
 * * *
 
@@ -124,7 +125,8 @@ Colour the two distributions in the histogram with different colours
 
 ```{r}
 ggplot(faithful) + 
-  geom_histogram(aes(x = eruptions))
+  geom_histogram(mapping = aes(x = eruptions, fill = eruptions < 3.1)) # single position
+
 ```
 
 Hint 1: For polygons you can map two different colour-like aesthetics: `colour` 
@@ -137,7 +139,9 @@ Colour the distributions in the histogram by whether `waiting` is above or below
 
 ```{r}
 ggplot(faithful) + 
-  geom_histogram(aes(x = eruptions))
+  geom_histogram(mapping = aes(x = eruptions, fill = waiting <60), 
+                 position = "dodge", 
+                 alpha = 0.3) # single position
 ```
 
 Change the plot above by setting `position = 'dodge'` in `geom_histogram()` 
@@ -149,8 +153,10 @@ Add a line that separates the two point distributions. See `?geom_abline` for
 how to draw straight lines from a slope and intercept.
 
 ```{r}
+?geom_abline
 ggplot(faithful) + 
-  geom_point(aes(x = eruptions, y = waiting))
+  geom_point(aes(x = eruptions, y = waiting)) +
+  geom_abline(intercept = 200, slope=-40)
 ```
 
 ### Stat
@@ -166,7 +172,7 @@ ggplot(mpg) +
   geom_bar(aes(x = class))
 ```
 
-The stat can be overwritten. If we have precomputed count we don't want any 
+The stat can be overwritten. If we have pre-computed count we don't want any 
 additional computations to perform and we use the `identity` stat to leave the 
 data alone
 
@@ -217,7 +223,8 @@ stat it uses as default. Then modify the code to use the stat directly instead
 
 ```{r}
 ggplot(mpg) + 
-  geom_bar(aes(x = class))
+  stat_count(aes(x = class))
+
 ```
 
 * * *
@@ -226,7 +233,9 @@ Use `stat_summary()` to add a red dot at the mean `hwy` for each group
 
 ```{r}
 ggplot(mpg) + 
-  geom_jitter(aes(x = class, y = hwy), width = 0.2)
+  geom_jitter(aes(x = class, y = hwy), width = 0.2) +
+  stat_summary(aes(x = class, y = hwy), fun = mean, geom = "point", 
+               color = "red", size = 2)
 ```
 
 Hint: You will need to change the default geom of `stat_summary()`
@@ -246,7 +255,8 @@ conventions.
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy, colour = class)) + 
-  scale_colour_brewer(type = 'qual')
+  scale_colour_brewer(name = "CLASS", type = 'qual')
+
 ```
 
 Positional mappings (x and y) also have associated scales.
@@ -263,9 +273,10 @@ Use `RColorBrewer::display.brewer.all()` to see all the different palettes from
 Color Brewer and pick your favourite. Modify the code below to use it
 
 ```{r}
+RColorBrewer::display.brewer.all()
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy, colour = class)) + 
-  scale_colour_brewer(type = 'qual')
+  scale_colour_brewer(palette = 'Dark')
 ```
 
 * * *
@@ -276,8 +287,10 @@ amount of cylinders (4, 5, 6, and 8) are present in the legend.
 
 ```{r}
 ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class)) + 
-  scale_colour_brewer(type = 'qual')
+  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  scale_colour_brewer(type = 'qual') +
+  scale_size_area(breaks = c(4, 5, 6, 8))
+  
 ```
 
 Hint: The `breaks` argument in the scale is used to control which values are
@@ -293,7 +306,7 @@ variable, but to the continuous `cty` variable. What happens to the guide?
 
 ```{r}
 ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class, size = cty))
+  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty))
 ```
 
 * * *
@@ -306,7 +319,10 @@ guide type?
 
 ```{r}
 ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty))
+  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty)) +
+  guides(color = "legend")
+
+
 ```
 
 ### Facets
@@ -335,7 +351,7 @@ settings in the plot below:
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy)) + 
-  facet_wrap(~ drv)
+  facet_wrap(~ drv, scales = "free_x")
 ```
 
 * * *
@@ -347,7 +363,7 @@ between the panels in the plot. What happens?
 ```{r}
 ggplot(mpg) + 
   geom_bar(aes(y = manufacturer)) + 
-  facet_grid(class ~ .)
+  facet_grid(class ~ ., space = "free_y", scales= "free_y")
 ```
 
 Use the `space` argument in `facet_grid()` to change the plot above so each bar 
@@ -361,7 +377,9 @@ recreate the same panels present in the plot below by using `facet_wrap()`
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy)) + 
-  facet_grid(year ~ drv)
+  facet_wrap(~ drv + year)
+
+
 ```
 
 ### Coordinates
@@ -406,7 +424,8 @@ and then using `coord_trans()`. Compare the results — how do they differ?
 
 ```{r}
 ggplot(mpg) + 
-  geom_point(aes(x = hwy, y = displ))
+  geom_point(aes(x = hwy, y = displ)) +
+  coord_trans(y = "log")
 ```
 
 * * *
@@ -483,7 +502,11 @@ ggplot(mpg) +
   labs(title = "Number of car models per class",
        caption = "source: http://fueleconomy.gov",
        x = 'Number of cars',
-       y = NULL)
+       y = NULL) +
+  theme_minimal()
+    
+  
+  
 ```
 
 ## Extensions
