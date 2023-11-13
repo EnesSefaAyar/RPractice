@@ -972,6 +972,37 @@ s1
 colData(se)$center <- rep("University of Illinois", nrow(colData(se)))
 colData(se)
 
+# tidyverse commands to interact with SummarizedExperiment, 
+# tidySummarizedExperiment package.
+BiocManager::install("tidySummarizedExperiment")
+library("tidySummarizedExperiment")
+# View mode changes, SummarizedExperiment-tibble abstraction
+se
+
+# If we want to revert to the standard SummarizedExperiment view, we can do that
+options("restore_SummarizedExperiment_show" = TRUE)
+se
+
+options("restore_SummarizedExperiment_show" = FALSE)
+se
+
+se %>% filter(.sample == "GSM2545336")
+se
+
+se %>% select(.sample)
+
+se %>% mutate(center = "Heidelberg University")
+
+se %>%
+    group_by(.sample) %>%
+    summarise(total_counts=sum(counts))
+
+# plot the distribution of counts per sample
+se %>%
+    ggplot(aes(counts + 1, group=.sample, color=infection)) +
+    geom_density() +
+    scale_x_log10() +
+    theme_bw()
 
 ```
 
