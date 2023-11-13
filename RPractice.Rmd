@@ -301,7 +301,7 @@ rna <- readRDS("data_output/rnaseq.rds")
 
 ```
 
-# Chapter 5 dplyr and tidyr (needs to be reviewed)
+# Chapter 5 dplyr and tidyr
 ```{r}
 ## load the tidyverse packages, incl. dplyr
 library("tidyverse")
@@ -889,7 +889,88 @@ ggsave("fig_output/combo_plot_chromosome_sex.png", combo_plot,
 
 # Chapter 7 SummarizedExperiment
 ```{r}
+# Three major components: 
+# count matrix, expression values, intensities etc.
+# sample meta data (df for sample info, treatments, incubation times etc.),
+# features meta data (df for features info, annotations, localization etc.)
+count_matrix <- read.csv("data_output/rna_wide.csv",
+                         row.names = 1) %>%
+    as.matrix()
 
+count_matrix[1:5, ]
+dim(count_matrix)
+
+if (!file.exists("data/sample_metadata.csv"))
+download.file(url = "https://carpentries-incubator.github.io/bioc-intro/data/sample_metadata.csv",
+              destfile = "data/sample_metadata.csv")
+
+
+sample_metadata <- read.csv("data/sample_metadata.csv")
+sample_metadata
+dim(sample_metadata)
+
+if (!file.exists("data/gene_metadata.csv"))
+download.file(url = "https://carpentries-incubator.github.io/bioc-intro/data/gene_metadata.csv",
+              destfile = "data/gene_metadata.csv")
+
+gene_metadata <- read.csv("data/gene_metadata.csv")
+gene_metadata[1:10, 1:4]
+dim(gene_metadata)
+
+library("SummarizedExperiment")
+# Make sure sample and gene names in count matrix in the same order w/ meta. 
+stopifnot(rownames(count_matrix) == gene_metadata$gene)
+stopifnot(colnames(count_matrix) == sample_metadata$sample)
+
+# Create the object
+se <- SummarizedExperiment(assays = list(counts = count_matrix),
+                           colData = sample_metadata,
+                           rowData = gene_metadata)
+se
+
+saveRDS(se, file = "data_output/se.rds")
+rm(se)
+se <- readRDS("data_output/se.rds")
+head(se)
+
+# How to reach assay (count matrix)
+head(assay(se))
+dim(assay(se))
+
+# We can access the sample metadata using the colData function:
+colData(se)
+dim(colData(se))
+
+# We can also access the feature metadata using the rowData function:
+head(rowData(se))
+dim(rowData(se))
+
+# Subsetting a SE data
+se1 <- se[1:5, 1:3]
+se1
+colData(se1)
+rowData(se1)
+
+# Conditional subsetting
+se1 <- se[rowData(se)$gene_biotype == "miRNA",
+          colData(se)$infection == "NonInfected"]
+se1
+assay(se1)
+
+# Exercise
+se1 <- se[1:3, colData(se)$time == 0 | colData(se)$time == 8]
+se1
+dim(assay(se1))
+
+# Exercise
+s1 <- rna %>% 
+  select(gene, time, expression) %>% 
+  filter(time != 4 & gene %in% rna$gene[1:3])
+s1
+
+# Adding info to metadata
+colData(se)$center <- rep("University of Illinois", nrow(colData(se)))
+colData(se)
 
 
 ```
